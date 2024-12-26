@@ -1,0 +1,2 @@
+# Mounts the host directory /mnt/pve/cephfs/data/Media/Pictures/Library into a VM or container at /data/Media/Pictures/Library. It links the host's CephFS storage to the guest's filesystem.
+mp0: /mnt/pve/cephfs/data/Media/Pictures/Library,mp=/data/Media/Pictures/Library
