@@ -1,2 +1,5 @@
-# Mounts the host directory /mnt/pve/cephfs/data/Media/Pictures/Library into a VM or container at /data/Media/Pictures/Library. It links the host's CephFS storage to the guest's filesystem.
-mp0: /mnt/pve/cephfs/data/Media/Pictures/Library,mp=/data/Media/Pictures/Library
+# Edit the LXC config file on the PVE node:
+nano /etc/pve/lxc/999.conf
+
+# Mounts the host directory /mnt/pve/cephfs/data/Media/ into a VM or container at /data/Media/. It links the host's CephFS storage to the guest's filesystem.
+mp0: /mnt/pve/cephfs/data/Media/,mp=/data/Media/
