@@ -52,3 +52,5 @@ if response.status_code == 201:
         print(f"{key:<20} {value}")
 else:
     print("Failed to create proxy host:", response.text)
+
+input("Press Enter to continue...")
