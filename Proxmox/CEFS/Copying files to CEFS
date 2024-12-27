@@ -1,1 +1,11 @@
+This command copies the contents of the "Electric Callboy" directory to the "Library" directory, preserving file attributes, setting permissions to `0777`, and displaying progress.
+
+- `rsync`: The command itself.
+- `-a`: Archive mode; it preserves the structure and attributes of files.
+- `-h`: Human-readable output; makes the file sizes easier to read.
+- `--chmod=0777`: Sets the permissions of the copied files to `0777` (read, write, and execute for everyone).
+- `--progress`: Shows the progress of the file transfer.
+- `"/mnt/wd_6tb/data/Media/Music/Electric Callboy"`: The source directory containing the files to be copied.
+- `"/mnt/pve/cephfs/data/Media/Music/Library/"`: The destination directory where the files will be copied to.
+
 rsync -ah --chmod=0777 --progress "/mnt/wd_6tb/data/Media/Music/Electric Callboy" "/mnt/pve/cephfs/data/Media/Music/Library/"
