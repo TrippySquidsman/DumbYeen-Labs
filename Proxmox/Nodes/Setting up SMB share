@@ -1,0 +1,151 @@
+https://computingforgeeks.com/how-to-configure-samba-share-on-debian/
+
+1 – Install Samba Packages
+
+We will start off by installing Samba on Debian Linux system. This is easy since it is available in the default Debian repositories.
+
+apt update
+apt install samba smbclient cifs-utils
+
+2 – Set the Samba Global settings
+
+The Samba configuration file is located under /etc/samba/smb.conf. In this file, there are several changes we need to make. Although Debian is intelligent enough to provide default configurations, it is also good to verify this.
+
+Open the file using a preferred editor.
+
+nano /etc/samba/smb.conf
+
+In the file, make make adjustments as you deem fit, example for workgroup.
+
+workgroup = WORKGROUP
+
+3 – Create Shared Samba Directory
+
+Here, you can share both public and private directories. So we will create the two directories as below.
+
+mkdir /public
+mkdir /private
+
+Now edit the Samba conf and add the two directories.
+
+nano /etc/samba/smb.conf
+
+At the end of the file, add the shares and authentication methods to access it.
+
+[public]
+   comment = Public Folder
+   path = /public
+   writable = yes
+   guest ok = yes
+   guest only = yes
+   force create mode = 775
+   force directory mode = 775
+[private]
+   comment = Private Folder
+   path = /private
+   writable = yes
+   guest ok = no
+   valid users = @smbshare
+   force create mode = 770
+   force directory mode = 770
+   inherit permissions = yes
+
+4 – Create Samba User and Group
+
+We need the Samba share user group to access the Private share as specified in the conf above. So we will create the group as below.
+
+groupadd smbshare
+
+Add the necessary permissions for the private share.
+
+chgrp -R smbshare /private/
+chgrp -R smbshare /public
+
+Set the right directory permissions.
+
+chmod 2770 /private/
+chmod 2775 /public
+
+In the above command, the value 2 at the beginning, stands for the SGID bit. This allows newly created files to inherit the parent group.
+
+Next, create a no login local user to access the private share.
+
+useradd -M -s /sbin/nologin sambauser
+
+Add the user to the Samba share group created above.
+
+usermod -aG smbshare sambauser
+
+Now create an SMB password for the user.
+
+smbpasswd -a sambauser
+
+Enable the created account:
+
+smbpasswd -e sambauser
+
+5 – Verify the Samba configuration
+
+Once changes have been made to the config file, it is recommended that you test it using the below command:
+
+testparm
+
+Execution output:
+
+Load smb config files from /etc/samba/smb.conf
+Loaded services file OK.
+Weak crypto is allowed
+Server role: ROLE_STANDALONE
+
+Press enter to see a dump of your service definitions
+
+# Global parameters
+[global]
+	interfaces = 192.168.205.0/24 eth0
+	log file = /var/log/samba/log.%m
+	logging = file
+	map to guest = Bad User
+	max log size = 1000
+	obey pam restrictions = Yes
+	pam password change = Yes
+	panic action = /usr/share/samba/panic-action %d
+	passwd chat = *Enter\snew\s*\spassword:* %n\n *Retype\snew\s*\spassword:* %n\n *password\supdated\ssuccessfully* .
+	passwd program = /usr/bin/passwd %u
+	server role = standalone server
+	unix password sync = Yes
+	usershare allow guests = Yes
+	idmap config * : backend = tdb
+.....
+[public]
+	comment = Public Folder
+	force create mode = 0775
+	force directory mode = 0775
+	guest ok = Yes
+	guest only = Yes
+	path = /public
+	read only = No
+
+
+[private]
+	comment = Private Folder
+	force create mode = 0770
+	force directory mode = 0770
+	inherit permissions = Yes
+	path = /private
+	read only = No
+	valid users = @smbshare
+
+The above output shows that everything is configured appropriately. Now proceed as below.
+
+Create demo files in the Samba shares:
+
+mkdir /private/demo-private /public/demo-public
+touch /private/demo1.txt /public/demo2.txt
+
+Restart the Samba service for the changes to apply.
+
+systemctl restart nmbd
+
+If you have a firewall running, you need to allow remote access from the specified IP range:
+
+ufw allow from 192.168.205.0/24 to any app Samba

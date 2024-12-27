@@ -1,0 +1,15 @@
+# Install Samba components:
+apt update
+apt install samba smbclient cifs-utils -y
+
+# Mount share from host `10.0.0.3` in `/etc/fstab`:
+mkdir /mnt/samba
+nano /etc/fstab
+
+//10.0.0.3/wd_6tb /mnt/samba cifs username=smbshare,password=v3rifY!1 0 0
+
+# Test the mount
+mount -a
+
+# Reload daemon
+systemctl daemon-reload
