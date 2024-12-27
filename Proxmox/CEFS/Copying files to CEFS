@@ -1,0 +1,1 @@
+rsync -ah --chmod=0777 --progress "/mnt/wd_6tb/data/Media/Music/Electric Callboy" "/mnt/pve/cephfs/data/Media/Music/Library/"
