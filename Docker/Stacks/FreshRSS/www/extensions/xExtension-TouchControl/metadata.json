@@ -1,8 +1,0 @@
-{
-	"name": "Touch Control",
-	"author": "Marco Heizmann",
-	"description": "Add touch gestures to FreshRSS.",
-	"version": 0.2,
-	"entrypoint": "TouchControl",
-	"type": "user"
-}
