@@ -11,7 +11,7 @@ mkdir -p $backup_dir
 echo "Backing up all containers..."
 for container in $(docker ps -q); do
     container_name=$(docker inspect --format='{{.Name}}' $container | cut -c2-)  # Get container name
-    image_name="backup_${container_name}_$(date +%Y%m%d)"                        # Create backup image name with date
+    image_name="$(date +%Y%m%d)_${container_name}"                        # Create backup image name with date
     backup_file="${backup_dir}/${image_name}.tar"                               # Backup file path
 
     echo "Backing up container: $container_name (ID: $container)"
@@ -19,9 +19,19 @@ for container in $(docker ps -q); do
     docker save $image_name -o $backup_file                                     # Save the image as a tar file
 done
 
-# Copy backups to the network drive
+# Copy backups to the network drive with progress bar
 echo "Transferring backups to network drive..."
-cp -r $backup_dir/* $network_mount
+
+total_files=$(find $backup_dir -type f | wc -l)
+current_file=0
+
+for file in $backup_dir/*; do
+    current_file=$((current_file + 1))
+    echo "Transferring file $current_file of $total_files: $(basename $file)"
+    
+    # Sub-progress bar for current file
+    pv $file > $network_mount/$(basename $file)
+done
 
 # Clean up local backup files
 echo "Cleaning up local backup files..."
