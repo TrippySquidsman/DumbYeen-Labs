@@ -15,7 +15,7 @@ username = "root@pam"
 password = "byHhHNIg072qh&hM@r4kT8O0"
 
 # Filepath and Worksheet Details
-excel_path = "https://d.docs.live.net/E88524C5BB44C92A/Documents/Homelab/Homelab%20Service%20Overview.xlsx"
+excel_path = "C:\Users\test.ies\Documents\Homelab Stuff\Homelab Service Overview.xlsx"
 hostname_column = "Hostname"
 pve_id_column = "PVE ID"
 

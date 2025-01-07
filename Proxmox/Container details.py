@@ -1,4 +1,5 @@
 import requests
+from prettytable import PrettyTable
 
 # Proxmox API details
 base_url = "https://10.0.0.1:8006/api2/json"
@@ -30,3 +31,14 @@ for host in hosts:
 # Print container names and IDs
 for container_name, container_id in container_data.items():
     print(f"Container name: {container_name}, ID: {container_id}")
+
+    # Create a table
+    table = PrettyTable()
+    table.field_names = ["Container Name", "ID"]
+
+    # Add rows to the table
+    for container_name, container_id in container_data.items():
+        table.add_row([container_name, container_id])
+
+    # Print the table
+    print(table)
