@@ -13,12 +13,14 @@ for container in $(docker ps -q); do
     container_name=$(docker inspect --format='{{.Name}}' $container | cut -c2-)  # Get container name
     image_name="$(date +%Y%m%d)_${container_name}"                        # Create backup image name with date
     backup_file="${backup_dir}/${image_name}.tar"                               # Backup file path
-
+    echo ""
     echo "Backing up container: $container_name (ID: $container)"
     # Commit the container to an image
     docker commit $container $image_name
     # Save the image as a compressed tar file
-    docker save $image_name -o $backup_file | gzip $image_name.tar
+    docker save $image_name -o $backup_file
+    echo "Compressing image $image_name..."
+    pv $backup_file | gzip > $backup_file.gz
 done
 
 # Copy backups to the network drive with progress bar
