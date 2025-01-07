@@ -18,7 +18,7 @@ for container in $(docker ps -q); do
     # Commit the container to an image
     docker commit $container $image_name
     # Save the image as a compressed tar file
-    docker save $image_name -o $backup_file | gzip > $backup_file.tar.gz        
+    docker save $image_name -o $backup_file | gzip > $image_name.tar.gz        
 done
 
 # Copy backups to the network drive with progress bar
