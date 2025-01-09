@@ -30,7 +30,7 @@ Configure DNS records for your domain:
      On Debian/Ubuntu:
 
      ```bash
-     sudo apt install opendkim opendkim-tools
+     apt install opendkim opendkim-tools
      ```
 
 2. Generate DKIM Keys:
@@ -52,7 +52,7 @@ Configure DNS records for your domain:
 3. Configure OpenDKIM: Edit the main OpenDKIM configuration file:
 
     ```bash
-    sudo nano /etc/opendkim.conf
+    nano /etc/opendkim.conf
     ```
 
     Add or update the following lines:
@@ -75,7 +75,7 @@ Configure DNS records for your domain:
 4. Set Up Key Table:
 
     ```bash
-    sudo nano /etc/opendkim/key.table
+    nano /etc/opendkim/key.table
     ```
 
     Add:
@@ -87,7 +87,7 @@ Configure DNS records for your domain:
 5. Set Up Signing Table:
 
     ```bash
-    sudo nano /etc/opendkim/signing.table
+    nano /etc/opendkim/signing.table
     ```
 
     Add:
@@ -99,7 +99,7 @@ Configure DNS records for your domain:
 6. Set Up Trusted Hosts:
 
     ```bash
-    sudo nano /etc/opendkim/trusted.hosts
+    nano /etc/opendkim/trusted.hosts
     ```
 
     Add:
@@ -113,8 +113,8 @@ Configure DNS records for your domain:
 7. Restart OpenDKIM:
 
     ```bash
-    sudo systemctl restart opendkim
-    sudo systemctl enable opendkim
+    systemctl restart opendkim
+    systemctl enable opendkim
     ```
 
 8. Add DKIM Record to DNS: Open the mail.txt file generated earlier and copy the contents. You’ll see something like:
@@ -163,7 +163,7 @@ Popular mail server software includes:
 - **Postfix**: For sending emails.
 
     ```bash
-    sudo apt install postfix
+    apt install postfix
     ```
 
     Configure Postfix with your domain and hostname.
@@ -171,7 +171,7 @@ Popular mail server software includes:
 - **Dovecot**: For IMAP and POP3 services.
 
     ```bash
-    sudo apt install dovecot-core dovecot-imapd
+    apt install dovecot-core dovecot-imapd
     ```
 
 ### Step 5: Install SSL/TLS Certificates
@@ -179,8 +179,8 @@ Popular mail server software includes:
 Use Let's Encrypt to secure email transmission.
 
 ```bash
-sudo apt install certbot
-sudo certbot certonly --standalone -d mail.yourdomain.com
+apt install certbot
+certbot certonly --standalone -d mail.yourdomain.com
 ```
 
 Configure Postfix and Dovecot to use SSL.
