@@ -1,49 +1,20 @@
 #!/bin/bash
-# Version 1.0
-# Send Fail2ban notifications using a Telegram Bot
-import requests
 
 IP="$1"
+
+curl -X POST https://api.telegram.org/bot/sendMessage \
+     -d chat_id=6460892329 \
+     -d text="fail2ban just blocked an IP: $IP"
+
+
+#!/bin/bash
+# Version 1.0
+# Send Fail2ban notifications using a Telegram Bot
+
 # Telegram BOT Token 
 telegramBotToken='7904961916:AAHyzo8FTxE-DCBJl2w3nyvj8iLwQLtHLxE'
 # Telegram Chat ID
 telegramChatID='6460892329'
-
-
-def get_ip_geolocation(ip_address):
-    try:
-        # Fetch geolocation info from a public API (use your preferred service)
-        response = requests.get(f"https://ipinfo.io/{IP}/json")
-        data = response.json()
-        return {
-            "location": data.get("city", "Unknown") + ", " + data.get("region", "Unknown"),
-            "country": data.get("country", "Unknown"),
-            "org": data.get("org", "Unknown"),
-        }
-    except Exception as e:
-        return {"location": "Unknown", "country": "Unknown", "org": "Unknown"}
-
-def generate_notification(IP, email, ban_count):
-    ip_info = get_ip_geolocation(IP)
-    location = ip_info["location"]
-    country = ip_info["country"]
-    org = ip_info["org"]
-
-    return f"""
-    🚨 **Security Alert: IP Address Banned** 🚨  
-
-    The IP address **${ip_add_ban}** has been **banned** for ${reason}.  
-
-    **Details:**  
-    - 🔐 **Service:** Vaultwarden  
-    - 🚫 **Action Taken:** IP banned  
-    - 🔄 **Ban Count:** {ban_count}  
-
-    📍 **IP Information:**  
-    - 🌐 **Location:** {location}, {country}  
-    - 🔗 **Associated Network:** {org}   
-    """
-
 
 function talkToBot() {
     message=$1
@@ -61,9 +32,6 @@ while getopts "a:b:u:r:" opt; do
         b)
             ban=y
             ip_add_ban=$OPTARG
-        ;;
-        e)
-            email=$OPTARG
         ;;
         u)
             unban=y
@@ -92,7 +60,7 @@ if [[ ! -z ${action} ]]; then
         ;;
     esac
 elif [[ ${ban} == "y" ]]; then
-    talkToBot (generate_notification(ip_add_ban, email, ban_count))
+    talkToBot "The IP ${ip_add_ban} has been banned due to ${reason}."
     exit 0;
 elif [[ ${unban} == "y" ]]; then
     talkToBot "The IP: ${ip_add_unban} has been unbanned."
