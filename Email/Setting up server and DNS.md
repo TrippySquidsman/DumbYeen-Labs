@@ -185,6 +185,176 @@ sudo certbot certonly --standalone -d mail.yourdomain.com
 
 Configure Postfix and Dovecot to use SSL.
 
+### Option 1: Self-Signed Certificate
+
+Generate a self-signed certificate:
+
+```bash
+openssl req -new -x509 -days 365 -nodes -out /etc/ssl/certs/mailserver.pem -keyout /etc/ssl/private/mailserver.key
+chmod 600 /etc/ssl/private/mailserver.key
+```
+
+### Option 2: Let’s Encrypt (Recommended for Production)
+
+If you have a domain name and DNS configured:
+
+```bash
+apt install certbot
+certbot certonly --standalone -d mail.yourdomain.com
+```
+
+The certificate will be located at:
+
+- Certificate: `/etc/letsencrypt/live/mail.yourdomain.com/fullchain.pem`
+- Private Key: `/etc/letsencrypt/live/mail.yourdomain.com/privkey.pem`
+
+### Step 2: Configure Postfix to Use SSL
+
+Edit the Postfix main configuration file:
+
+```bash
+nano /etc/postfix/main.cf
+```
+
+Add or update the following lines:
+
+```plaintext
+# TLS settings
+smtpd_tls_cert_file=/etc/letsencrypt/live/mail.yourdomain.com/fullchain.pem
+smtpd_tls_key_file=/etc/letsencrypt/live/mail.yourdomain.com/privkey.pem
+smtpd_use_tls=yes
+smtpd_tls_auth_only=yes
+smtp_tls_security_level=may
+smtpd_tls_security_level=encrypt
+smtpd_tls_loglevel=1
+smtpd_tls_received_header=yes
+smtpd_tls_session_cache_timeout=3600s
+
+# Enforce SMTP authentication
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/auth
+smtpd_sasl_security_options = noanonymous
+smtpd_recipient_restrictions =
+    permit_sasl_authenticated,
+    permit_mynetworks,
+    reject_unauth_destination
+```
+
+Restart Postfix for the changes to take effect:
+
+```bash
+systemctl restart postfix
+```
+
+### Step 3: Configure Dovecot to Use SSL
+
+Edit the Dovecot SSL configuration file:
+
+```bash
+nano /etc/dovecot/conf.d/10-ssl.conf
+```
+
+Set or update the following:
+
+```plaintext
+ssl = yes
+ssl_cert = </etc/letsencrypt/live/mail.yourdomain.com/fullchain.pem
+ssl_key = </etc/letsencrypt/live/mail.yourdomain.com/privkey.pem
+ssl_dh = </etc/dovecot/dh.pem
+ssl_min_protocol = TLSv1.2
+```
+
+Generate a Diffie-Hellman (DH) parameters file for added security:
+
+```bash
+openssl dhparam -out /etc/dovecot/dh.pem 2048
+```
+
+### Step 4: Enable Authentication in Dovecot
+
+Edit the Dovecot authentication configuration:
+
+```bash
+nano /etc/dovecot/conf.d/10-auth.conf
+```
+
+Ensure the following line is set:
+
+```plaintext
+disable_plaintext_auth = yes
+auth_mechanisms = plain login
+```
+
+### Step 5: Configure Dovecot’s SASL Socket for Postfix
+
+Edit the Dovecot socket configuration file:
+
+```bash
+nano /etc/dovecot/conf.d/10-master.conf
+```
+
+Ensure the following section is present and uncommented:
+
+```plaintext
+service auth {
+  unix_listener /var/spool/postfix/private/auth {
+    mode = 0660
+    user = postfix
+    group = postfix
+  }
+}
+```
+
+Restart Dovecot:
+
+```bash
+systemctl restart dovecot
+```
+
+### Step 6: Test SSL Configuration
+
+Check SMTP (STARTTLS) Support:
+
+```bash
+openssl s_client -starttls smtp -connect mail.yourdomain.com:587
+```
+
+Check IMAP (SSL) Support:
+
+```bash
+openssl s_client -connect mail.yourdomain.com:993
+```
+
+Check POP3 (SSL) Support:
+
+```bash
+openssl s_client -connect mail.yourdomain.com:995
+```
+
+You should see details about the SSL certificate and a successful connection if everything is configured correctly.
+
+### Step 7: Automate SSL Renewal (if using Let’s Encrypt)
+
+Add a cron job to automatically renew the SSL certificates and restart services:
+
+Edit the crontab:
+
+```bash
+crontab -e
+```
+
+Add the following line:
+
+```plaintext
+0 3 * * * certbot renew --quiet && systemctl reload postfix dovecot
+```
+
+### Final Notes
+
+- Make sure port 587 (SMTP with STARTTLS), 993 (IMAP SSL), and 995 (POP3 SSL) are open on your firewall.
+- You can use tools like SSL Labs to verify your mail server’s SSL configuration.
+
 ### Step 6: Set Up Webmail (Optional)
 
 Install a webmail client like Rainloop or Roundcube for browser-based access.
