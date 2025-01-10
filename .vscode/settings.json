@@ -1,0 +1,10 @@
+{
+    "editor.quickSuggestions": {
+        "strings": "inline",
+        "comments": "inline"
+    },
+    "editor.suggest.preview": true,
+    "files.autoGuessEncoding": true,
+    "files.autoSave": "onFocusChange",
+    "files.autoSaveWhenNoErrors": true
+}
