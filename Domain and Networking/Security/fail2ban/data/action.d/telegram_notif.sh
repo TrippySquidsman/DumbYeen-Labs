@@ -5,9 +5,9 @@ import requests
 
 IP="$1"
 # Telegram BOT Token 
-telegramBotToken='7904961916:AAHyzo8FTxE-DCBJl2w3nyvj8iLwQLtHLxE'
+telegramBotToken='............'
 # Telegram Chat ID
-telegramChatID='6460892329'
+telegramChatID='............'
 
 
 def get_ip_geolocation(ip_address):
