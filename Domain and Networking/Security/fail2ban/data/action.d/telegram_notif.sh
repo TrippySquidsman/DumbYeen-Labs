@@ -1,26 +1,8 @@
 #!/bin/bash
-# Version 1.1
+# Version 2.0
 # Send Fail2ban notifications using a Telegram Bot
 
-IP="$1"
-
-# Telegram BOT Token 
-telegramBotToken='............'
-# Telegram Chat ID
-telegramChatID='............'
-
-function talkToBot() {
-    message="$1"
-    curl -s -X POST "https://api.telegram.org/bot${telegramBotToken}/sendMessage" \
-        -d "text=${message}" -d "chat_id=${telegramChatID}" > /dev/null 2>&1
-}
-
-if [ $# -eq 0 ]; then
-    echo "Usage: $0 -a (start || stop) || -b IP || -u IP || -r REASON"
-    exit 1;
-fi
-
-while getopts "a:b:u:r:" opt; do
+while getopts "a:b:u:e:c:t:r:" opt; do
     case "$opt" in
         a)
             action=$OPTARG
@@ -29,13 +11,19 @@ while getopts "a:b:u:r:" opt; do
             ban=y
             ip_add_ban=$OPTARG
         ;;
-        e)
-            email=$OPTARG
-        ;;
         u)
             unban=y
             ip_add_unban=$OPTARG
         ;;
+        e)
+            email=$OPTARG
+        ;;
+	    c)
+	        chat=$OPTARG
+        ;;
+        t)
+	        token=$OPTARG
+
         r)
             reason=$OPTARG
         ;;
@@ -45,6 +33,17 @@ while getopts "a:b:u:r:" opt; do
         ;;
     esac
 done
+
+# Telegram BOT Token 
+telegramBotToken='$token'
+# Telegram Chat ID
+telegramChatID='$chat'
+
+function talkToBot() {
+    message="$1"
+    curl -s -X POST "https://api.telegram.org/bot${telegramBotToken}/sendMessage" \
+        -d "text=${message}" -d "chat_id=${telegramChatID}" > /dev/null 2>&1
+}
 
 if [[ -n ${action} ]]; then
     case "${action}" in
