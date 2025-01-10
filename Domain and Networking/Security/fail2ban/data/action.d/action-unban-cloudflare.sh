@@ -1,5 +1,6 @@
-AUTH_EMAIL="cloudflare@tomis.online"
-AUTH_KEY="9ccbc0f537b908ea62b45ee64dc43e3a0f295"
+AUTH_EMAIL="............"
+AUTH_KEY="............"
+AUTH_ZONE="............"
 TARGET_IP=$1
 
 json=$(curl -X GET "https://api.cloudflare.com/client/v4/zones/62cc17fa10ecda5e920683038d4d3aa1/firewall/access_rules/rules" \
@@ -10,7 +11,7 @@ RULE_ID=$(echo "$json" | jq -r --arg value "$TARGET_IP" '.result[] | select(.con
 
 # Check if the RULE_ID was found
 if [ -n "$RULE_ID" ] && [ "$RULE_ID" != "null" ]; then
-  DELETE_RESPONSE=$(curl -s -X DELETE "https://api.cloudflare.com/client/v4/zones/62cc17fa10ecda5e920683038d4d3aa1/firewall/access_rules/rules/$RULE_ID" \
+  DELETE_RESPONSE=$(curl -s -X DELETE "https://api.cloudflare.com/client/v4/zones/$AUTH_ZONE/firewall/access_rules/rules/$RULE_ID" \
     -H "X-Auth-Email: $AUTH_EMAIL" \
     -H "X-Auth-Key: $AUTH_KEY" \
     -H "Content-Type: application/json")
