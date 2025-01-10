@@ -1,0 +1,376 @@
+[INCLUDES]
+before = paths-debian.conf
+
+[DEFAULT]
+ignorecommand =
+bantime = 10m
+findtime = 10m
+maxretry = 5
+maxmatches = %(maxretry)s
+backend = auto
+usedns = warn
+logencoding = auto
+enabled = false
+mode = normal
+filter = %(__name__)s[mode=%(mode)s]
+
+destemail = root@localhost
+sender = root@<fq-hostname>
+mta = sendmail
+protocol = tcp
+chain = <known/chain>
+port = 0:65535
+fail2ban_agent = Fail2Ban/%(fail2ban_version)s
+banaction = iptables-multiport
+banaction_allports = iptables-allports
+action_ = %(banaction)s[port="%(port)s", protocol="%(protocol)s", chain="%(chain)s"]
+action_mw = %(action_)s
+            %(mta)s-whois[sender="%(sender)s", dest="%(destemail)s", protocol="%(protocol)s", chain="%(chain)s"]
+action_mwl = %(action_)s
+             %(mta)s-whois-lines[sender="%(sender)s", dest="%(destemail)s", logpath="%(logpath)s", chain="%(chain)s"]
+action_xarf = %(action_)s
+             xarf-login-attack[service=%(__name__)s, sender="%(sender)s", logpath="%(logpath)s", port="%(port)s"]
+action_cf_mwl = cloudflare[cfuser="%(cfemail)s", cftoken="%(cfapikey)s"]
+                %(mta)s-whois-lines[sender="%(sender)s", dest="%(destemail)s", logpath="%(logpath)s", chain="%(chain)s"]
+action_blocklist_de = blocklist_de[email="%(sender)s", service="%(__name__)s", apikey="%(blocklist_de_apikey)s", agent="%(fail2ban_agent)s"]
+action_abuseipdb = abuseipdb
+
+action = %(action_)s
+
+[vaultwarden-login-bruteforce]
+# bots that are bruteforcing vaultwarden login
+enabled = true
+ignoreip = 
+#ignoreip = 103.21.244.0/22 103.22.200.0/22 103.31.4.0/22 104.16.0.0/13 104.24.0.0/14 108.162.192.0/18 131.0.72.0/22 141.101.64.0/18 162.158.0.0/15 172.64.0.0/13 173.245.48.0/20 188.114.96.0/20 190.93.240.0/20 197.234.240.0/22 198.41.128.0/17 2400:cb00::/32 2606:4700::/32 2803:f800::/32 2405:b500::/32 2405:8100::/32 2a06:98c0::/29 2c0f:f248::/32 127.0.0.0/8 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+filter = vaultwarden-login-bruteforce
+logpath = /data/compose/22/vw-data/logfile.log
+# this action bans every IP via DOCKER-USER chain. So the IP won't be able to access docker containers!
+# Note: This only works for containers that don't use the dockernet MACVLAN interface
+chain = DOCKER-USER
+banaction = action-ban-cloudflare
+maxretry = 5
+findtime = 300
+bantime = 600
+
+[npm-general-forceful-browsing]
+# bots that trigger too many 403 or 404
+enabled = true
+ignoreip = 
+#ignoreip = 103.21.244.0/22 103.22.200.0/22 103.31.4.0/22 104.16.0.0/13 104.24.0.0/14 108.162.192.0/18 131.0.72.0/22 141.101.64.0/18 162.158.0.0/15 172.64.0.0/13 173.245.48.0/20 188.114.96.0/20 190.93.240.0/20 197.234.240.0/22 198.41.128.0/17 2400:cb00::/32 2606:4700::/32 2803:f800::/32 2405:b500::/32 2405:8100::/32 2a06:98c0::/29 2c0f:f248::/32 127.0.0.0/8 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+filter = npm-general-forceful-browsing
+logpath = /data/compose/21/data/logs/proxy-host-*_access.log
+# this action bans every IP via DOCKER-USER chain. So the IP won't be able to access docker containers!
+# Note: This only works for containers that don't use the dockernet MACVLAN interface
+chain = DOCKER-USER
+banaction = action-ban-docker-forceful-browsing
+            action-ban-cloudflare
+maxretry = 10
+findtime = 60
+bantime = 600
+
+[npm-general-badbots]
+# bots with popular user-agent strings that are malicious
+enabled  = true
+ignoreip = 
+#ignoreip = 103.21.244.0/22 103.22.200.0/22 103.31.4.0/22 104.16.0.0/13 104.24.0.0/14 108.162.192.0/18 131.0.72.0/22 141.101.64.0/18 162.158.0.0/15 172.64.0.0/13 173.245.48.0/20 188.114.96.0/20 190.93.240.0/20 197.234.240.0/22 198.41.128.0/17 2400:cb00::/32 2606:4700::/32 2803:f800::/32 2405:b500::/32 2405:8100::/32 2a06:98c0::/29 2c0f:f248::/32 127.0.0.0/8 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+filter   = npm-general-badbots
+logpath  = /data/compose/21/data/logs/proxy-host-*_access.log
+# this action bans every IP via DOCKER-USER chain. So the IP won't be able to access docker containers!
+# Note: This only works for containers that don't use the dockernet MACVLAN interface
+chain = DOCKER-USER
+banaction = action-ban-docker-badbots
+            action-ban-cloudflare
+maxretry = 1
+findtime = 60
+bantime  = 600
+
+
+[sshd]
+port = ssh
+backend=systemd
+enabled = true
+
+[dropbear]
+port = ssh
+logpath = %(dropbear_log)s
+backend = %(dropbear_backend)s
+
+[selinux-ssh]
+port = ssh
+logpath = %(auditd_log)s
+
+[apache-auth]
+port = http,https
+logpath = %(apache_error_log)s
+
+[apache-badbots]
+port = http,https
+logpath = %(apache_access_log)s
+bantime = 48h
+maxretry = 1
+
+[apache-noscript]
+port = http,https
+logpath = %(apache_error_log)s
+
+[apache-overflows]
+port = http,https
+logpath = %(apache_error_log)s
+maxretry = 2
+
+[apache-nohome]
+port = http,https
+logpath = %(apache_error_log)s
+maxretry = 2
+
+[apache-botsearch]
+port = http,https
+logpath = %(apache_error_log)s
+maxretry = 2
+
+[apache-fakegooglebot]
+port = http,https
+logpath = %(apache_access_log)s
+maxretry = 1
+ignorecommand = %(fail2ban_confpath)s/filter.d/ignorecommands/apache-fakegooglebot <ip>
+
+[apache-modsecurity]
+port = http,https
+logpath = %(apache_error_log)s
+maxretry = 2
+
+[apache-shellshock]
+port = http,https
+logpath = %(apache_error_log)s
+maxretry = 1
+
+[openhab-auth]
+filter = openhab
+banaction = %(banaction_allports)s
+logpath = /opt/openhab/logs/request.log
+
+[nginx-http-auth]
+port = http,https
+logpath = %(nginx_error_log)s
+
+[nginx-limit-req]
+port = http,https
+logpath = %(nginx_error_log)s
+
+[nginx-botsearch]
+port = http,https
+logpath = %(nginx_error_log)s
+
+[nginx-bad-request]
+port = http,https
+logpath = %(nginx_access_log)s
+
+[php-url-fopen]
+port = http,https
+logpath = %(nginx_access_log)s
+          %(apache_access_log)s
+
+[suhosin]
+port = http,https
+logpath = %(suhosin_log)s
+
+[lighttpd-auth]
+port = http,https
+logpath = %(lighttpd_error_log)s
+
+[roundcube-auth]
+port = http,https
+logpath = %(roundcube_errors_log)s
+
+[openwebmail]
+port = http,https
+logpath = /var/log/openwebmail.log
+
+[horde]
+port = http,https
+logpath = /var/log/horde/horde.log
+
+[groupoffice]
+port = http,https
+logpath = /home/groupoffice/log/info.log
+
+[sogo-auth]
+port = http,https
+logpath = /var/log/sogo/sogo.log
+
+[tine20]
+logpath = /var/log/tine20/tine20.log
+port = http,https
+
+[drupal-auth]
+port = http,https
+logpath = %(syslog_daemon)s
+backend = %(syslog_backend)s
+
+[guacamole]
+port = http,https
+logpath = /var/log/tomcat*/catalina.out
+
+[monit]
+port = 2812
+logpath = /var/log/monit
+           /var/log/monit.log
+
+[webmin-auth]
+port = 10000
+logpath = %(syslog_authpriv)s
+backend = %(syslog_backend)s
+
+[froxlor-auth]
+port = http,https
+logpath = %(syslog_authpriv)s
+backend = %(syslog_backend)s
+
+[squid]
+port = 80,443,3128,8080
+logpath = /var/log/squid/access.log
+
+[3proxy]
+port = 3128
+logpath = /var/log/3proxy.log
+
+[proftpd]
+port = ftp,ftp-data,ftps,ftps-data
+logpath = %(proftpd_log)s
+backend = %(proftpd_backend)s
+
+[pure-ftpd]
+port = ftp,ftp-data,ftps,ftps-data
+logpath = %(pureftpd_log)s
+backend = %(pureftpd_backend)s
+
+[gssftpd]
+port = ftp,ftp-data,ftps,ftps-data
+logpath = %(syslog_daemon)s
+backend = %(syslog_backend)s
+
+[wuftpd]
+port = ftp,ftp-data,ftps,ftps-data
+logpath = %(wuftpd_log)s
+backend = %(wuftpd_backend)s
+
+[vsftpd]
+port = ftp,ftp-data,ftps,ftps-data
+logpath = %(vsftpd_log)s
+
+[assp]
+port = smtp,465,submission
+logpath = /root/path/to/assp/logs/maillog.txt
+
+[courier-smtp]
+port = smtp,465,submission
+logpath = %(syslog_mail)s
+backend = %(syslog_backend)s
+
+[postfix]
+mode = more
+port = smtp,465,submission
+logpath = %(postfix_log)s
+backend = %(postfix_backend)s
+
+[postfix-rbl]
+filter = postfix[mode=rbl]
+port = smtp,465,submission
+logpath = %(postfix_log)s
+backend = %(postfix_backend)s
+maxretry = 1
+
+[sendmail-auth]
+port = submission,465,smtp
+logpath = %(syslog_mail)s
+backend = %(syslog_backend)s
+
+[sendmail-reject]
+port = smtp,465,submission
+logpath = %(syslog_mail)s
+backend = %(syslog_backend)s
+
+[qmail-rbl]
+filter = qmail
+port = smtp,465,submission
+logpath = /service/qmail/log/main/current
+
+[dovecot]
+port = pop3,pop3s,imap,imaps,submission,465,sieve
+logpath = %(dovecot_log)s
+backend = %(dovecot_backend)s
+
+[sieve]
+port = smtp,465,submission
+logpath = %(dovecot_log)s
+backend = %(dovecot_backend)s
+
+[solid-pop3d]
+port = pop3,pop3s
+logpath = %(solidpop3d_log)s
+
+[exim]
+port = smtp,465,submission
+logpath = %(exim_main_log)s
+
+[exim-spam]
+port = smtp,465,submission
+logpath = %(exim_main_log)s
+
+[kerio]
+port = imap,smtp,imaps,465
+logpath = /opt/kerio/mailserver/store/logs/security.log
+
+[courier-auth]
+port = smtp,465,submission,imap,imaps,pop3,pop3s
+logpath = %(syslog_mail)s
+backend = %(syslog_backend)s
+
+[postfix-sasl]
+filter = postfix[mode=auth]
+port = smtp,465,submission,imap,imaps,pop3,pop3s
+logpath = %(postfix_log)s
+backend = %(postfix_backend)s
+
+[perdition]
+port = imap,imaps,pop3,pop3s
+logpath = %(syslog_mail)s
+backend = %(syslog_backend)s
+
+[squirrelmail]
+port = smtp,465,submission,imap,imap2,imaps,pop3,pop3s,http,https,socks
+logpath = /var/lib/squirrelmail/prefs/squirrelmail_access_log
+
+[cyrus-imap]
+port = imap,imaps
+logpath = %(syslog_mail)s
+backend = %(syslog_backend)s
+
+[uwimap-auth]
+port = imap,imaps
+logpath = %(syslog_mail)s
+backend = %(syslog_backend)s
+
+[named-refused]
+port = domain,953
+logpath = /var/log/named/security.log
+
+[nsd]
+port = 53
+action_ = %(default/action_)s[name=%(__name__)s-tcp, protocol="tcp"]
+           %(default/action_)s[name=%(__name__)s-udp, protocol="udp"]
+logpath = /var/log/nsd.log
+
+[asterisk]
+port = 5060,5061
+action_ = %(default/action_)s[name=%(__name__)s-tcp, protocol="tcp"]
+           %(default/action_)s[name=%(__name__)s-udp, protocol="udp"]
+logpath = /var/log/asterisk/messages
+maxretry = 10
+
+[freeswitch]
+port = 5060,5061
+action_ = %(default/action_)s[name=%(__name__)s-tcp, protocol="tcp"]
+           %(default/action_)s[name=%(__name__)s-udp, protocol="udp"]
+logpath = /var/log/freeswitch.log
+maxretry = 10
